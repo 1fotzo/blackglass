@@ -19,5 +19,6 @@ jobs:
           -v "${{ github.workspace }}:/work"
           -w /work
           -e PYTHONPATH=/work/src
+          -e PATH="/opt/foundry/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
           blackglass-lab
-          bash -lc "pytest && forge test --root lab/smoke && bash scripts/smoke-anvil.sh && bash scripts/mutation-check.sh && python -m blackglass.cli lab test && python -m blackglass.cli corpus score"
+          bash -c "pytest && forge test --root lab/smoke && bash scripts/smoke-anvil.sh && bash scripts/mutation-check.sh && python -m blackglass.cli lab test && python -m blackglass.cli corpus score"

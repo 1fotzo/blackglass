@@ -2,21 +2,27 @@
 
 from __future__ import annotations
 
-import sqlite3
+import sys
 from pathlib import Path
 
 import typer
 
-from blackglass.banner import print_banner
-from blackglass.campaign.fork import ForkRefusal
-from blackglass.campaign.models import FindingStatus
-from blackglass.campaign.runner import ForgeNotFound, repo_root, run_campaign, run_lab
-from blackglass.campaign.score import collect_rows, render_score
-from blackglass.core.config import ConfigError, load_config
-from blackglass.core.importer import ImportError, import_campaign
-from blackglass.core.report import render_report
-from blackglass.core.scope import ScopeError, normalize_address, normalize_path
-from blackglass.core.store import open_store
+from blackglass.console import (
+    SCOPE_PATH,
+    do_campaign,
+    do_corpus,
+    do_lab,
+    do_project_create,
+    do_project_import,
+    do_project_list,
+    do_project_open,
+    do_project_scope,
+    do_report,
+    do_status,
+    open_console,
+    run_auto,
+)
+from blackglass.console import HELP_TEXT as GUIDE_TEXT
 
 app = typer.Typer(
     name="blackglass",
@@ -43,11 +49,12 @@ def main(
         help="Print the one-line mark.",
     ),
 ) -> None:
-    """Show the glass-plate banner when no command is given."""
+    """Show the glass-plate banner. On a terminal, show the numbered console."""
     ctx.ensure_object(dict)
     ctx.obj["quiet"] = quiet
     if ctx.invoked_subcommand is None:
-        print_banner(quiet=quiet)
+        interactive = sys.stdin.isatty() and sys.stdout.isatty()
+        open_console(interactive=interactive, quiet=quiet)
 
 
 @app.command()
@@ -61,7 +68,29 @@ def version(
     ),
 ) -> None:
     """Show the glass-plate banner and the version."""
+    from blackglass.banner import print_banner
+
     print_banner(quiet=_quiet_from(ctx, quiet))
+
+
+@app.command("auto")
+def auto(
+    yes: bool = typer.Option(False, "--yes", "-y", help="Run the playlist without asking."),
+) -> None:
+    """Run the lab, score the corpus, import, and write the report."""
+    raise typer.Exit(code=run_auto(yes=yes))
+
+
+@app.command("status")
+def status() -> None:
+    """Show the open project, the lab, and the last result."""
+    do_status()
+
+
+@app.command("help")
+def guide() -> None:
+    """Explain the numbered modules."""
+    typer.echo(GUIDE_TEXT)
 
 
 project_app = typer.Typer(help="Projects, scope, and campaign import.")
@@ -76,23 +105,10 @@ app.add_typer(campaign_app, name="campaign")
 app.add_typer(corpus_app, name="corpus")
 
 
-def _emit(result) -> None:
-    typer.echo(result.status.value)
-    if result.outcome.patched_held is False:
-        raise typer.Exit(code=1)
-    if result.status is not FindingStatus.reproduced or not result.minimized_test:
-        raise typer.Exit(code=1)
-
-
 @lab_app.command("test")
 def lab_test() -> None:
     """Run the lending twins and apply the reproduced rule."""
-    try:
-        result = run_lab()
-    except ForgeNotFound as exc:
-        typer.echo(str(exc), err=True)
-        raise typer.Exit(code=1) from exc
-    _emit(result)
+    do_lab()
 
 
 @campaign_app.command("run")
@@ -103,45 +119,13 @@ def campaign_run(
     timeout: int = typer.Option(30, "--timeout", help="Seconds to allow Medusa to run."),
 ) -> None:
     """Run Medusa, then the lending twins."""
-    try:
-        result = run_campaign(
-            fork=fork,
-            fork_block=fork_block,
-            broadcast=broadcast,
-            medusa_timeout=timeout,
-        )
-    except (ForgeNotFound, ForkRefusal) as exc:
-        typer.echo(str(exc), err=True)
-        raise typer.Exit(code=1) from exc
-    _emit(result)
+    do_campaign(fork=fork, fork_block=fork_block, broadcast=broadcast, timeout=timeout)
 
 
 @corpus_app.command("score")
 def corpus_score() -> None:
     """Print lending outcomes. Exit 1 if a patched twin broke."""
-    root = repo_root()
-    rows, code = collect_rows(root / "corpus" / "cases", root / "campaigns")
-    typer.echo(render_score(rows))
-    raise typer.Exit(code=code)
-
-
-def _store():
-    root = repo_root()
-    config_path = root / "blackglass.toml"
-    try:
-        load_config(config_path)
-    except ConfigError as exc:
-        typer.echo(str(exc), err=True)
-        raise typer.Exit(code=1) from exc
-    return root, open_store(root)
-
-
-def _require_current(store):
-    project = store.current()
-    if project is None:
-        typer.echo("no project is open", err=True)
-        raise typer.Exit(code=1)
-    return project
+    do_corpus()
 
 
 @project_app.command("create")
@@ -150,41 +134,19 @@ def project_create(
     owner: str = typer.Option("", "--owner"),
 ) -> None:
     """Create a project and open it."""
-    _, store = _store()
-    try:
-        store.create_project(name, owner)
-    except sqlite3.IntegrityError as exc:
-        typer.echo(f"{name} already exists", err=True)
-        raise typer.Exit(code=1) from exc
-    finally:
-        store.close()
-    typer.echo(name)
+    do_project_create(name, owner)
 
 
 @project_app.command("list")
 def project_list() -> None:
     """List projects."""
-    _, store = _store()
-    try:
-        rows = store.list_projects()
-    finally:
-        store.close()
-    for row in rows:
-        typer.echo(row["name"])
+    do_project_list()
 
 
 @project_app.command("open")
 def project_open(name: str = typer.Argument(...)) -> None:
     """Make a project the current project."""
-    _, store = _store()
-    try:
-        store.open_project(name)
-    except LookupError as exc:
-        typer.echo(str(exc), err=True)
-        raise typer.Exit(code=1) from exc
-    finally:
-        store.close()
-    typer.echo(name)
+    do_project_open(name)
 
 
 @project_app.command("scope")
@@ -194,44 +156,16 @@ def project_scope(
     address: str | None = typer.Option(None, "--address"),
 ) -> None:
     """Grant a repository path or a chain address."""
-    root, store = _store()
-    try:
-        project = _require_current(store)
-        project_id = int(project["id"])
-        if path is not None:
-            granted = normalize_path(root, path)
-            store.grant_path(project_id, granted)
-            typer.echo(granted)
-            return
-        if chain_id is None or address is None:
-            typer.echo("pass --path, or both --chain-id and --address", err=True)
-            raise typer.Exit(code=1)
-        granted_address = normalize_address(address)
-        store.grant_address(project_id, chain_id, granted_address)
-        typer.echo(f"{chain_id} {granted_address}")
-    except (ScopeError, ConfigError) as exc:
-        typer.echo(str(exc), err=True)
-        raise typer.Exit(code=1) from exc
-    finally:
-        store.close()
+    do_project_scope(path=path, chain_id=chain_id, address=address)
 
 
 @project_app.command("import")
 def project_import(
     result: Path = typer.Argument(..., help="Campaign result.json"),
-    path: str = typer.Option("lab/lending", "--path", help="In-scope path this result belongs to."),
+    path: str = typer.Option(SCOPE_PATH, "--path", help="In-scope path this result belongs to."),
 ) -> None:
     """Import a campaign. The path must already be in scope."""
-    root, store = _store()
-    try:
-        _require_current(store)
-        imported = import_campaign(store, root, result, path)
-    except (ImportError, ScopeError) as exc:
-        typer.echo(str(exc), err=True)
-        raise typer.Exit(code=1) from exc
-    finally:
-        store.close()
-    typer.echo(imported.status.value)
+    do_project_import(result, path)
 
 
 @report_app.command("generate")
@@ -239,17 +173,7 @@ def report_generate(
     output: Path | None = typer.Option(None, "--output"),
 ) -> None:
     """Write a Markdown report with three labeled sections."""
-    root, store = _store()
-    try:
-        project = _require_current(store)
-        body = render_report(store, int(project["id"]), str(project["name"]))
-        destination = output or (root / ".blackglass" / "reports" / f"{project['name']}.md")
-        destination.parent.mkdir(parents=True, exist_ok=True)
-        destination.write_text(body, encoding="utf-8")
-        store.log(int(project["id"]), f"report generate {destination}")
-    finally:
-        store.close()
-    typer.echo(destination)
+    do_report(output)
 
 
 if __name__ == "__main__":

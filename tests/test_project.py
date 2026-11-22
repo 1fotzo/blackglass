@@ -101,7 +101,7 @@ def test_address_scope_rejects_targets_that_were_not_granted(tmp_path: Path) -> 
 
 
 def test_project_commands(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("blackglass.cli.repo_root", lambda: tmp_path)
+    monkeypatch.setattr("blackglass.console.repo_root", lambda: tmp_path)
     (tmp_path / "lab" / "lending").mkdir(parents=True)
     created = runner.invoke(app, ["project", "create", "lending", "--owner", "ada"])
     assert created.exit_code == 0

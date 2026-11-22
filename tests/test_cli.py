@@ -12,6 +12,7 @@ def test_bare_command_prints_the_mark() -> None:
     assert result.exit_code == 0
     assert ONE_LINE in result.output
     assert __version__ in result.output
+    assert "select:" not in result.output
 
 
 def test_version_command_prints_the_mark_and_version() -> None:
