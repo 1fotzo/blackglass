@@ -1,0 +1,23 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lab:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the lab image
+        run: docker build -t blackglass-lab -f docker/Dockerfile .
+
+      - name: Run pytest, forge test, and the Anvil smoke check
+        run: >
+          docker run --rm
+          -v "${{ github.workspace }}:/work"
+          -w /work
+          -e PYTHONPATH=/work/src
+          blackglass-lab
+          bash -lc "pytest && forge test --root lab/smoke && bash scripts/smoke-anvil.sh"
