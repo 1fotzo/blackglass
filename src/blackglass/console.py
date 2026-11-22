@@ -54,6 +54,8 @@ HELP_TEXT = """
 7  Status    Shows the open project, whether the lab tools are present, and the latest campaign result.
 8  Help      Shows this text.
 
+After a result, b returns to the numbered menu and q quits.
+
 Recon, Wallet, Strike, Identity, Network, and AI are listed and are not built.
 Auto does not create a project, call a model, or broadcast.
 The same actions are commands: blackglass lab test, blackglass corpus score, blackglass project, blackglass report generate, blackglass campaign run, blackglass auto, blackglass status, blackglass help.
@@ -95,36 +97,49 @@ def menu_text() -> str:
     return "\n".join(lines)
 
 
+BACK_TEXT = """
+  b  Back to menu
+  q  Quit
+""".strip()
+
+
 def open_console(*, interactive: bool, quiet: bool, read: Reader | None = None) -> None:
     """Print the banner. Offer the menu only on an interactive terminal."""
     print_banner(quiet=quiet)
     if quiet or not interactive:
         return
     reader = read or input
+    numbers = {number for number, _, _ in LIVE + LOCKED}
     while True:
         typer.echo(menu_text())
-        try:
-            choice = _resolve(reader("select: "))
-        except (EOFError, KeyboardInterrupt):
-            typer.echo("")
-            return
-        if choice in {"q", "quit"}:
-            return
-        if choice == "":
-            continue
+        while True:
+            try:
+                choice = _resolve(reader("select: "))
+            except (EOFError, KeyboardInterrupt):
+                typer.echo("")
+                return
+            if choice in {"q", "quit"}:
+                return
+            if choice == "":
+                continue
+            if choice not in numbers:
+                typer.echo("Choose a number, or q to quit.")
+                continue
+            break
         locked = _locked_name(choice)
         if locked is not None:
             typer.echo(f"{locked} is not built.")
-            continue
-        if choice == "8":
+        elif choice == "8":
             typer.echo(HELP_TEXT)
-            continue
-        try:
-            _run_choice(choice, reader)
-        except typer.Exit:
-            continue
-        except KeyboardInterrupt:
-            typer.echo("")
+        else:
+            try:
+                _run_choice(choice, reader)
+            except typer.Exit:
+                pass
+            except KeyboardInterrupt:
+                typer.echo("")
+        if _hold(reader) == "quit":
+            return
 
 
 def status_text(root: Path, *, lab_ready: bool) -> str:
@@ -384,6 +399,23 @@ def do_status() -> None:
         typer.echo(str(exc), err=True)
         raise typer.Exit(code=1) from exc
     typer.echo(status_text(root, lab_ready=lab_is_ready()))
+
+
+def _hold(read: Reader) -> str:
+    """Keep the result on screen until the operator goes back or quits."""
+    typer.echo("")
+    typer.echo(BACK_TEXT)
+    while True:
+        try:
+            answer = read("select: ").strip().lower()
+        except (EOFError, KeyboardInterrupt):
+            typer.echo("")
+            return "quit"
+        if answer in {"b", "back"}:
+            return "menu"
+        if answer in {"q", "quit"}:
+            return "quit"
+        typer.echo("Choose b or q.")
 
 
 def _run_choice(choice: str, read: Reader) -> None:
