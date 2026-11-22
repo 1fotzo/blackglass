@@ -74,6 +74,20 @@ blackglass report generate
 
 Import refuses a path that is not in scope. The report has three sections: Reproduced, Hypotheses, and Recommendations. A campaign is listed as reproduced only when the vulnerable result broke, the patched result held, and the minimized test was hashed into evidence. Put RPC URLs and keys in the environment, not in `blackglass.toml`.
 
+## Phase 3
+
+Grant the address first. Put the indexer key in `.env` in the clone. That file is not committed. A shell variable with the same name wins over the file.
+
+```bash
+export BLACKGLASS_ETHERSCAN_API_KEY=your-key
+blackglass project scope --chain-id 1 --address 0x0000000000000000000000000000000000000001
+blackglass recon map --chain-id 1 --address 0x0000000000000000000000000000000000000001 --block 19000000
+blackglass wallet inspect --chain-id 1 --address 0x0000000000000000000000000000000000000001 --block 19000000
+blackglass report generate
+```
+
+`recon map` records what the address is, who can pull its assets, and which contracts it names. `wallet inspect` records the exposure only. Both are observations. An unlimited approval is not marked reproduced. Discovered neighbors are not added to scope. The window defaults to 5000 blocks and cannot exceed 100000.
+
 ## What the smoke test is
 
 `lab/smoke` is a Foundry project with one contract. `forge test --root lab/smoke` compiles it and runs `test_ping`. `scripts/smoke-anvil.sh` starts Anvil, checks that the chain id is `31337`, and stops it.

@@ -7,6 +7,7 @@ from pathlib import Path
 
 import typer
 
+from blackglass.chain.service import DEFAULT_WINDOW, do_recon_map, do_wallet_inspect
 from blackglass.console import (
     SCOPE_PATH,
     do_campaign,
@@ -93,16 +94,42 @@ def guide() -> None:
     typer.echo(GUIDE_TEXT)
 
 
+recon_app = typer.Typer(help="Pinned recon for one scoped address.")
+wallet_app = typer.Typer(help="Wallet exposure for one scoped address.")
 project_app = typer.Typer(help="Projects, scope, and campaign import.")
 report_app = typer.Typer(help="Reports.")
 lab_app = typer.Typer(help="Local twin harness.")
 campaign_app = typer.Typer(help="Confirmation campaigns.")
 corpus_app = typer.Typer(help="Corpus score.")
+app.add_typer(recon_app, name="recon")
+app.add_typer(wallet_app, name="wallet")
 app.add_typer(project_app, name="project")
 app.add_typer(report_app, name="report")
 app.add_typer(lab_app, name="lab")
 app.add_typer(campaign_app, name="campaign")
 app.add_typer(corpus_app, name="corpus")
+
+
+@recon_app.command("map")
+def recon_map(
+    chain_id: int = typer.Option(..., "--chain-id"),
+    address: str = typer.Option(..., "--address"),
+    block: int = typer.Option(..., "--block"),
+    window: int = typer.Option(DEFAULT_WINDOW, "--window", help="Blocks before --block. Maximum 100000."),
+) -> None:
+    """Map one scoped address. Discovered neighbors are not granted."""
+    do_recon_map(chain_id, address, block, window)
+
+
+@wallet_app.command("inspect")
+def wallet_inspect(
+    chain_id: int = typer.Option(..., "--chain-id"),
+    address: str = typer.Option(..., "--address"),
+    block: int = typer.Option(..., "--block"),
+    window: int = typer.Option(DEFAULT_WINDOW, "--window", help="Blocks before --block. Maximum 100000."),
+) -> None:
+    """Read balances, transfers, and approvals. Approvals stay observations."""
+    do_wallet_inspect(chain_id, address, block, window)
 
 
 @lab_app.command("test")

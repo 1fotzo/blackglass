@@ -11,6 +11,7 @@ from pathlib import Path
 import typer
 
 from blackglass.banner import LAB_TOOLS, lab_is_ready, print_banner
+from blackglass.chain.service import do_recon_map, do_wallet_inspect
 from blackglass.campaign.fork import ForkRefusal
 from blackglass.campaign.models import CampaignResult, FindingStatus
 from blackglass.campaign.runner import LAB_ID, ForgeNotFound, repo_root, run_campaign, run_lab
@@ -34,10 +35,10 @@ LIVE: tuple[tuple[str, str, str], ...] = (
     ("6", "Auto", "run the lab, score, import, report"),
     ("7", "Status", "project, lab, and last result"),
     ("8", "Help", "what each number does"),
+    ("9", "Recon", "map a scoped address at a pinned block"),
+    ("10", "Wallet", "balances, transfers, and approvals"),
 )
 LOCKED: tuple[tuple[str, str, str], ...] = (
-    ("9", "Recon", "not built"),
-    ("10", "Wallet", "not built"),
     ("11", "Strike", "not built"),
     ("12", "Identity", "not built"),
     ("13", "Network", "not built"),
@@ -53,12 +54,15 @@ HELP_TEXT = """
 6  Auto      Checks the lab tools, runs the twins, scores the corpus, imports into the open project, and writes the report.
 7  Status    Shows the open project, whether the lab tools are present, and the latest campaign result.
 8  Help      Shows this text.
+9  Recon     Maps one scoped address at a pinned block. Discovered neighbors are not granted.
+10 Wallet    Reads balances, transfers, ERC-20 approvals, and Permit2 allowances. These stay observations.
+11 Strike    Not built.
 
 After a result, b returns to the numbered menu and q quits.
 
-Recon, Wallet, Strike, Identity, Network, and AI are listed and are not built.
-Auto does not create a project, call a model, or broadcast.
-The same actions are commands: blackglass lab test, blackglass corpus score, blackglass project, blackglass report generate, blackglass campaign run, blackglass auto, blackglass status, blackglass help.
+Strike, Identity, Network, and AI are listed and are not built.
+Auto does not create a project, call a model, or broadcast. Recon does not broadcast or take a key.
+The same actions are commands: blackglass lab test, blackglass corpus score, blackglass project, blackglass report generate, blackglass campaign run, blackglass auto, blackglass status, blackglass help, blackglass recon map, blackglass wallet inspect.
 """.strip()
 
 AUTO_STEPS = """
@@ -434,6 +438,32 @@ def _run_choice(choice: str, read: Reader) -> None:
         run_auto(yes=False, read=read)
     elif choice == "7":
         do_status()
+    elif choice == "9":
+        _run_chain(read, do_recon_map)
+    elif choice == "10":
+        _run_chain(read, do_wallet_inspect)
+
+
+def _run_chain(read: Reader, action: Callable[..., None]) -> None:
+    try:
+        chain_raw = read("chain id: ").strip()
+        address = read("address: ").strip()
+        block_raw = read("block: ").strip()
+        window_raw = read("window [5000]: ").strip() or "5000"
+    except (EOFError, KeyboardInterrupt):
+        typer.echo("")
+        return
+    if not chain_raw or not address or not block_raw:
+        typer.echo("chain id, address, and block are required")
+        return
+    try:
+        chain_id = int(chain_raw)
+        block = int(block_raw)
+        window = int(window_raw)
+    except ValueError:
+        typer.echo("chain id, block, and window must be integers")
+        return
+    action(chain_id, address, block, window)
 
 
 def _project_menu(read: Reader) -> None:

@@ -77,6 +77,26 @@ BEFORE DELETE ON command_log
 BEGIN
     SELECT RAISE(ABORT, 'command log is append-only');
 END;
+
+CREATE TABLE IF NOT EXISTS recon (
+    id INTEGER PRIMARY KEY,
+    project_id INTEGER NOT NULL REFERENCES project(id),
+    chain_id INTEGER NOT NULL,
+    address TEXT NOT NULL,
+    block INTEGER NOT NULL,
+    kind TEXT NOT NULL,
+    body TEXT NOT NULL,
+    sha256 TEXT NOT NULL,
+    collected_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS recon_source (
+    id INTEGER PRIMARY KEY,
+    recon_id INTEGER NOT NULL REFERENCES recon(id),
+    source TEXT NOT NULL,
+    sha256 TEXT NOT NULL,
+    collected_at TEXT NOT NULL
+);
 """
 
 
@@ -225,6 +245,44 @@ class Store:
         return list(
             self._conn.execute(
                 "SELECT command, recorded_at FROM command_log WHERE project_id = ? ORDER BY id",
+                (project_id,),
+            )
+        )
+
+
+    def add_recon(
+        self,
+        project_id: int,
+        *,
+        chain_id: int,
+        address: str,
+        block: int,
+        kind: str,
+        body: str,
+        sha256: str,
+    ) -> int:
+        cursor = self._conn.execute(
+            """
+            INSERT INTO recon (
+                project_id, chain_id, address, block, kind, body, sha256, collected_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (project_id, chain_id, address, block, kind, body, sha256, utc_now()),
+        )
+        self._conn.commit()
+        return int(cursor.lastrowid)
+
+    def add_recon_source(self, recon_id: int, *, source: str, sha256: str) -> None:
+        self._conn.execute(
+            "INSERT INTO recon_source (recon_id, source, sha256, collected_at) VALUES (?, ?, ?, ?)",
+            (recon_id, source, sha256, utc_now()),
+        )
+        self._conn.commit()
+
+    def recon_rows(self, project_id: int) -> list[sqlite3.Row]:
+        return list(
+            self._conn.execute(
+                "SELECT * FROM recon WHERE project_id = ? ORDER BY id",
                 (project_id,),
             )
         )

@@ -49,16 +49,16 @@ def test_menu_lists_live_modules_and_locked_ones() -> None:
 
 
 def test_locked_number_refuses_and_help_explains_auto(capsys) -> None:
-    open_console(interactive=True, quiet=False, read=_answers("9", "b", "8", "q"))
+    open_console(interactive=True, quiet=False, read=_answers("11", "b", "8", "q"))
     output = capsys.readouterr().out
-    assert "Recon is not built." in output
+    assert "Strike is not built." in output
     assert "does not create a project" in output
     assert "Back to menu" in output
     assert "select:" not in output
 
 
 def test_result_stays_until_back(capsys) -> None:
-    open_console(interactive=True, quiet=False, read=_answers("9", "q"))
+    open_console(interactive=True, quiet=False, read=_answers("11", "q"))
     output = capsys.readouterr().out
     assert output.count("later") == 1
     assert "Back to menu" in output
