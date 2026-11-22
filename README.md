@@ -1,12 +1,24 @@
 # BLACKGLASS
 
-Web3 security confirmation engine. Phase 0 is the toolchain: the command line, the glass-plate banner, a Foundry smoke test, and a Linux lab image.
+Web3 security confirmation engine. Phase 0 is the toolchain: the command line, the glass-plate banner, a Foundry smoke test, and the lab tools.
 
-The lab image is the fuzzer host. The CLI runs on Windows and calls that image. Parrot OS can use the image or install the same tools directly.
+## Install on Parrot OS
 
-## Install the CLI
+Clone the repo, then run one command as your normal user:
 
-Python 3.12 or newer.
+```bash
+bash install.sh
+```
+
+That installs Python 3.12 when the distro has it, the BLACKGLASS command, Foundry, Medusa 1.5.1, Slither, and solc 0.8.24. It then runs the smoke tests. Open a new terminal and run `blackglass version`.
+
+The same installer is `bash scripts/install-parrot.sh`. It also runs on other Debian-family systems. It refuses to run as root, and the Medusa binary it downloads is linux-x64.
+
+`LAB READY` on the banner means Forge, Anvil, and Medusa are on `PATH`, or a Docker image named `blackglass-lab` is present.
+
+## Install the CLI on Windows
+
+Python 3.12 or newer. Windows runs the CLI. The lab tools run in the Linux image below.
 
 ```powershell
 python -m venv .venv
@@ -21,7 +33,7 @@ blackglass version
 BLACKGLASS  ·  web3 security
 ```
 
-The right side of the plate reads `LAB READY` when the local Docker image is named `blackglass-lab`. Otherwise it reads `LAB ABSENT`.
+The right side of the plate reads `LAB READY` when Forge, Anvil, and Medusa are on `PATH`, or when a Docker image named `blackglass-lab` is present. Otherwise it reads `LAB ABSENT`.
 
 ## Lab image
 
@@ -39,33 +51,6 @@ Optional Halmos:
 ```powershell
 docker build -t blackglass-lab -f docker/Dockerfile --build-arg INSTALL_HALMOS=1 .
 ```
-
-Parrot, or any Debian-family Linux, can build that same image. To install the tools on the host instead:
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -e ".[dev]"
-
-curl -L https://foundry.paradigm.xyz | bash
-# open a new shell, or: source ~/.bashrc
-foundryup
-
-curl -fsSL -o /tmp/medusa.tar.gz \
-  https://github.com/crytic/medusa/releases/download/v1.5.1/medusa-linux-x64.tar.gz
-mkdir -p /tmp/medusa && tar -xzf /tmp/medusa.tar.gz -C /tmp/medusa
-sudo install -m 0755 "$(find /tmp/medusa -type f -name medusa | head -n 1)" /usr/local/bin/medusa
-
-pip install slither-analyzer
-solc-select install 0.8.24
-solc-select use 0.8.24
-
-pytest
-forge test --root lab/smoke
-bash scripts/smoke-anvil.sh
-```
-
-A native Parrot install does not create the Docker image, so the banner stays `LAB ABSENT` until `blackglass-lab` exists locally.
 
 ## What the smoke test is
 

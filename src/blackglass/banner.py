@@ -7,6 +7,7 @@ The fracture cyan is the only accent. Later severity emphasis uses that same col
 from __future__ import annotations
 
 import os
+import shutil
 import subprocess
 from collections.abc import Callable
 from subprocess import CompletedProcess
@@ -21,6 +22,7 @@ from blackglass import __version__
 ONE_LINE = "BLACKGLASS  ·  web3 security"
 FRACTURE_STYLE = "cyan"
 LAB_IMAGE = "blackglass-lab"
+LAB_TOOLS = ("forge", "anvil", "medusa")
 SLAB_MIN_WIDTH = 72
 INNER_WIDTH = 52
 _BG = "on grey11"
@@ -30,8 +32,12 @@ LabDetector = Callable[[], bool]
 
 def lab_is_ready(
     run: Callable[..., CompletedProcess[str]] | None = None,
+    which: Callable[[str], str | None] | None = None,
 ) -> bool:
-    """Return whether the local blackglass-lab image is present."""
+    """Return whether a native lab toolchain or the blackglass-lab image is present."""
+    finder = shutil.which if which is None else which
+    if all(finder(tool) for tool in LAB_TOOLS):
+        return True
     runner = run or subprocess.run
     try:
         completed = runner(

@@ -92,6 +92,19 @@ def test_lab_is_ready_reads_docker_status() -> None:
     def absent(*_args, **_kwargs):
         raise FileNotFoundError("docker")
 
-    assert lab_is_ready(ok) is True
-    assert lab_is_ready(missing) is False
-    assert lab_is_ready(absent) is False
+    def nowhere(_name: str) -> None:
+        return None
+
+    assert lab_is_ready(ok, which=nowhere) is True
+    assert lab_is_ready(missing, which=nowhere) is False
+    assert lab_is_ready(absent, which=nowhere) is False
+
+
+def test_lab_is_ready_accepts_native_tools() -> None:
+    def absent(*_args, **_kwargs):
+        raise FileNotFoundError("docker")
+
+    def present(name: str) -> str:
+        return f"/usr/bin/{name}"
+
+    assert lab_is_ready(absent, which=present) is True
