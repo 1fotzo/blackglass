@@ -52,6 +52,17 @@ Optional Halmos:
 docker build -t blackglass-lab -f docker/Dockerfile --build-arg INSTALL_HALMOS=1 .
 ```
 
+## Phase 1
+
+On Parrot, from the clone:
+
+```bash
+blackglass lab test
+blackglass corpus score
+```
+
+`lab test` runs the local lending pair. It records a reproduced finding only when the vulnerable pool breaks solvency and the patched pool holds. `corpus score` lists the public lending cases. Those stay inconclusive until a pinned run exists. The command exits non-zero if a patched twin fails.
+
 ## What the smoke test is
 
 `lab/smoke` is a Foundry project with one contract. `forge test --root lab/smoke` compiles it and runs `test_ping`. `scripts/smoke-anvil.sh` starts Anvil, checks that the chain id is `31337`, and stops it.

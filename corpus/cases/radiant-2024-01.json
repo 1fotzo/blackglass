@@ -1,0 +1,13 @@
+{
+  "id": "radiant-2024-01",
+  "title": "Radiant Capital",
+  "domain": "lending",
+  "chain_id": 42161,
+  "fork_block": null,
+  "vulnerable_ref": null,
+  "patched_ref": null,
+  "property": "A new market must not be left empty when borrowing against it is enabled.",
+  "impact": "funds",
+  "source_url": "https://rekt.news/leaderboard",
+  "outcome": "inconclusive"
+}

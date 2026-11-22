@@ -1,0 +1,13 @@
+{
+  "id": "euler-2023-03",
+  "title": "Euler Finance",
+  "domain": "lending",
+  "chain_id": 1,
+  "fork_block": null,
+  "vulnerable_ref": null,
+  "patched_ref": null,
+  "property": "Assets must cover recorded liabilities after a reserve donation.",
+  "impact": "funds",
+  "source_url": "https://www.euler.finance/blog/war-peace-behind-the-scenes-of-eulers-240m-exploit-recovery",
+  "outcome": "inconclusive"
+}

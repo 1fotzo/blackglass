@@ -1,0 +1,13 @@
+{
+  "id": "bzx-2021-11",
+  "title": "bZx",
+  "domain": "lending",
+  "chain_id": 1,
+  "fork_block": null,
+  "vulnerable_ref": null,
+  "patched_ref": null,
+  "property": "A loan must stay backed for the life of the position.",
+  "impact": "funds",
+  "source_url": "https://rekt.news/leaderboard",
+  "outcome": "inconclusive"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "cream-2021-10",
+  "title": "Cream Finance",
+  "domain": "lending",
+  "chain_id": 1,
+  "fork_block": null,
+  "vulnerable_ref": null,
+  "patched_ref": null,
+  "property": "Borrowed value must remain within collateral value.",
+  "impact": "funds",
+  "source_url": "https://rekt.news/leaderboard",
+  "outcome": "inconclusive"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "lodestar-2022-12",
+  "title": "Lodestar Finance",
+  "domain": "lending",
+  "chain_id": 42161,
+  "fork_block": null,
+  "vulnerable_ref": null,
+  "patched_ref": null,
+  "property": "Posted collateral value must stay inside the oracle bound.",
+  "impact": "bad_debt",
+  "source_url": "https://www.certik.com/blog/lodestar-finance-incident-analysis",
+  "outcome": "inconclusive"
+}

@@ -1,0 +1,13 @@
+{
+  "id": "prisma-2024-03",
+  "title": "Prisma Finance",
+  "domain": "lending",
+  "chain_id": 1,
+  "fork_block": null,
+  "vulnerable_ref": null,
+  "patched_ref": null,
+  "property": "Collateral must not move unless the position owner authorized that call.",
+  "impact": "funds",
+  "source_url": "https://www.llamarisk.com/research/risk-prisma-finance-incident-march-28-2024-post-mortem",
+  "outcome": "inconclusive"
+}

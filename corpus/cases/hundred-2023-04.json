@@ -1,0 +1,13 @@
+{
+  "id": "hundred-2023-04",
+  "title": "Hundred Finance",
+  "domain": "lending",
+  "chain_id": 10,
+  "fork_block": null,
+  "vulnerable_ref": null,
+  "patched_ref": null,
+  "property": "An empty market exchange rate must not change because tokens were sent straight to the market.",
+  "impact": "funds",
+  "source_url": "https://blog.hundred.finance/15-04-23-hundred-finance-hack-post-mortem-d895b618cf33",
+  "outcome": "inconclusive"
+}

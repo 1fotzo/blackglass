@@ -1,0 +1,28 @@
+{
+  "fuzzing": {
+    "workers": 2,
+    "timeout": 20,
+    "testLimit": 2000,
+    "shrinkLimit": 100,
+    "callSequenceLength": 8,
+    "targetContracts": ["VulnerableInvariant"],
+    "targetContractsBalances": ["100000000000000000000"],
+    "corpusDirectory": "medusa-corpus",
+    "coverageEnabled": true
+  },
+  "compilation": {
+    "platform": "crytic-compile",
+    "platformConfig": {
+      "target": ".",
+      "solcVersion": "0.8.24"
+    }
+  },
+  "testing": {
+    "stopOnFailedTest": true,
+    "testAllContracts": false,
+    "propertyTesting": {
+      "enabled": true,
+      "testPrefixes": ["property_"]
+    }
+  }
+}

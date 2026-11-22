@@ -1,0 +1,13 @@
+{
+  "id": "inverse-2022-04",
+  "title": "Inverse Finance",
+  "domain": "lending",
+  "chain_id": 1,
+  "fork_block": null,
+  "vulnerable_ref": null,
+  "patched_ref": null,
+  "property": "Collateral value must not be taken from a single trade.",
+  "impact": "bad_debt",
+  "source_url": "https://rekt.news/leaderboard",
+  "outcome": "inconclusive"
+}

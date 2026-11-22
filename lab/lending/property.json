@@ -1,0 +1,5 @@
+{
+  "id": "lab-lending-solvency",
+  "statement": "Pool assets must cover recorded liabilities.",
+  "impact": "funds"
+}

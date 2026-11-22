@@ -12,3 +12,5 @@ cache/
 broadcast/
 .env
 *.log
+campaigns/
+medusa-corpus/

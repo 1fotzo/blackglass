@@ -20,4 +20,4 @@ jobs:
           -w /work
           -e PYTHONPATH=/work/src
           blackglass-lab
-          bash -lc "pytest && forge test --root lab/smoke && bash scripts/smoke-anvil.sh"
+          bash -lc "pytest && forge test --root lab/smoke && bash scripts/smoke-anvil.sh && bash scripts/mutation-check.sh && python -m blackglass.cli lab test && python -m blackglass.cli corpus score"

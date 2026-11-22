@@ -1,0 +1,13 @@
+{
+  "id": "sonne-2024-05",
+  "title": "Sonne Finance",
+  "domain": "lending",
+  "chain_id": 10,
+  "fork_block": null,
+  "vulnerable_ref": null,
+  "patched_ref": null,
+  "property": "A newly enabled empty market must keep its exchange rate stable until it has liquidity.",
+  "impact": "funds",
+  "source_url": "https://www.certik.com/blog/sonne-finance-incident-analysis",
+  "outcome": "inconclusive"
+}

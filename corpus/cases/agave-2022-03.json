@@ -1,0 +1,13 @@
+{
+  "id": "agave-2022-03",
+  "title": "Agave and Hundred Finance",
+  "domain": "lending",
+  "chain_id": 100,
+  "fork_block": null,
+  "vulnerable_ref": null,
+  "patched_ref": null,
+  "property": "Borrowed value must remain within collateral after a token callback returns.",
+  "impact": "funds",
+  "source_url": "https://rekt.news/leaderboard",
+  "outcome": "inconclusive"
+}
