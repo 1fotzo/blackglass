@@ -63,6 +63,17 @@ blackglass corpus score
 
 `lab test` runs the local lending pair. It records a reproduced finding only when the vulnerable pool breaks solvency and the patched pool holds. `corpus score` lists the public lending cases. Those stay inconclusive until a pinned run exists. The command exits non-zero if a patched twin fails.
 
+## Phase 2
+
+```bash
+blackglass project create lending
+blackglass project scope --path lab/lending
+blackglass project import campaigns/lab-lending-solvency/result.json
+blackglass report generate
+```
+
+Import refuses a path that is not in scope. The report has three sections: Reproduced, Hypotheses, and Recommendations. A campaign is listed as reproduced only when the vulnerable result broke, the patched result held, and the minimized test was hashed into evidence. Put RPC URLs and keys in the environment, not in `blackglass.toml`.
+
 ## What the smoke test is
 
 `lab/smoke` is a Foundry project with one contract. `forge test --root lab/smoke` compiles it and runs `test_ping`. `scripts/smoke-anvil.sh` starts Anvil, checks that the chain id is `31337`, and stops it.
